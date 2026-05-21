@@ -1,14 +1,48 @@
 import express from "express";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+
+
+const JWT_SECRET = "100k";
 
 const app = express();
 app.use(express.json());
 
-const users = [{
+type User = {
+    userId: number;
+    username: string;
+    password: string;
+    collateral: {
+        available: number,
+        locked: number,
+    };
+    positions: {
+        market: string,
+        type: string,
+        qty: number, 
+        margin: number,
+        liquidationPrice: number,
+        pnL?: number,
+        averagePrice: number,
+    }[];
+    orders: {
+        orderId: number,
+        market: string,
+        type: string,
+        qty: number,
+        margin: number,
+        orderType: string,
+        price: number,
+        status: string
+    }[];
+}
+
+const users: User[] = [{
     userId: 1,
     username: "harkirat",
-    password: 123123,
+    password: "123123",
     collateral: {
-         availabe: 2000,
+         available: 2000,
          locked: 1000
     },
      positions: [
@@ -23,9 +57,9 @@ const users = [{
 }, {
     userId: 2,
     username: "raman",
-    password: 123123,
+    password: "123123",
     collateral: {
-         availabe: 2000,
+         available: 2000,
          locked: 2000
     },
     positions: [
@@ -76,17 +110,88 @@ const fills = [{
     short: 1
 }];
 
-app.post("/signup", (req, res) => {})
-app.post("/signin", (req, res) => {})
-app.post("/onramp", (req, res) => {})
-app.post("/order", (req, res) => {})
-app.delete("/order", (req, res) => {})
-app.get("/equity/available", (req, res) => {})
-app.get("/positions/open/:marketId", (req, res) => {});
-app.get("/positions/closed/:marketId", (req, res) => {});
-app.get("/orders/open/:marketId", (req, res) => {})
-app.get("/orders/:marketId", (req, res) => {})
-app.get("/fills", (req, res) => {});
+function auth(req: any, res: any, next: any){
+    const token = req.headers["authorization"];
+
+    if (!token) {
+        return res.status(403).json({
+            message: "no token provided"
+        });
+    }
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as {userId: number};
+        req.userId = decoded.userId;
+        next();
+    } catch(e) {
+        return res.status(403).json({
+            message: "invalid token",
+        })
+    }
+}
+
+app.post("/signup", async (req, res) => {
+    const {username, password} = req.body;
+    const existingUser = users.find((u) => u.username === username);
+    if (existingUser) {
+       return res.status(400).json({
+            message: "user already exists",
+        });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+ 
+    const newUser: User = {
+        userId: users.length +1,
+        username,
+        password: hashedPassword,
+        collateral: {available: 0, locked: 0},
+        positions: [],
+        orders: [],
+    };
+    users.push(newUser);
+
+    res.status(200).json({
+        message: "user created successfully!",
+        userId: newUser.userId,
+    })
+})
+app.post("/signin", async (req, res) => {
+    const {username, password} = req.body;
+    const user = users.find((u) => u.username === username);
+    if (!user){
+        return res.status(403).json({
+            message: "wrong credentials",
+        });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if(!isMatch){
+        return res.status(403).json({
+            message: "wrong credentials",
+        });
+    }
+
+    const token = jwt.sign(
+        {userId: user.userId},
+        JWT_SECRET,
+    )
+
+    res.status(200).json({ 
+        token,
+        userId: user.userId,
+     });
+})
+app.post("/onramp", auth, (req, res) => {})
+app.post("/order", auth,  (req, res) => {})
+app.delete("/order", auth,  (req, res) => {})
+app.get("/equity/available", auth, (req, res) => {})
+app.get("/positions/open/:marketId", auth, (req, res) => {});
+app.get("/positions/closed/:marketId", auth, (req, res) => {});
+app.get("/orders/open/:marketId", auth, (req, res) => {})
+app.get("/orders/:marketId",auth,  (req, res) => {})
+app.get("/fills", auth, (req, res) => {});
 
 async function liqudationChecks(asset: string, price: number) {
 
