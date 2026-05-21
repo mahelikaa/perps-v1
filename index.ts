@@ -40,7 +40,7 @@ type User = {
 const users: User[] = [{
     userId: 1,
     username: "harkirat",
-    password: "123123",
+    password: "$argon2id$v=19$m=65536,t=2,p=1$6zLZ/leDsgyqBRwj97QOJrDc2NDRfBj79N2LSW0AxXQ$pUuZgAD0aeIvD6RsSfOFu69RWZP2+X7hLwj5ai0Neus",
     collateral: {
          available: 2000,
          locked: 1000
@@ -57,7 +57,7 @@ const users: User[] = [{
 }, {
     userId: 2,
     username: "raman",
-    password: "123123",
+    password: "$argon2id$v=19$m=65536,t=2,p=1$0+MmZ4R6gYZjKp0myE1LqGHQ+RzWHh1UcU5KZrviGOc$NyaLx7J+U3WvuMB2wZ2mgBDZAyhA325AKxRy7CjXpbA",
     collateral: {
          available: 2000,
          locked: 2000
@@ -183,7 +183,30 @@ app.post("/signin", async (req, res) => {
         userId: user.userId,
      });
 })
-app.post("/onramp", auth, (req, res) => {})
+app.post("/onramp", auth, (req: any, res: any) => {
+    const userId = req.userId;
+    const {amount} = req.body;
+
+    if(!amount || typeof amount !== "number" || amount <= 0){
+        return res.status(400).json({
+            message: "invalid amount",
+        })
+    }
+    const user = users.find(u => u.userId === userId);
+
+    if(!user){
+        return res.status(404).json({
+            message: "user not found."
+        })
+    }
+
+    user.collateral.available += amount;
+
+    res.status(200).json({
+        message: "onramp successful",
+        available: user.collateral.available
+    });
+})
 app.post("/order", auth,  (req, res) => {})
 app.delete("/order", auth,  (req, res) => {})
 app.get("/equity/available", auth, (req, res) => {})
