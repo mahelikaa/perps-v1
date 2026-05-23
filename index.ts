@@ -24,6 +24,7 @@ type User = {
         liquidationPrice: number,
         pnL?: number,
         averagePrice: number,
+        status: "open" | "closed",
     }[];
     orders: {
         orderId: string,
@@ -67,8 +68,8 @@ const users: User[] = [{
         locked: 1000
     },
     positions: [
-        { market: "SOL", type: "LONG", qty: 10, margin: 500, liquidationPrice: 80, averagePrice: 90 },
-        { market: "ETH", type: "SHORT", qty: 1, margin: 500, liquidationPrice: 2000, averagePrice: 1900 }
+        { market: "SOL", type: "LONG", qty: 10, margin: 500, liquidationPrice: 80, averagePrice: 90, status: "open" },
+        { market: "ETH", type: "SHORT", qty: 1, margin: 500, liquidationPrice: 2000, averagePrice: 1900, status: "open" }
     ],
     orders: [
         { orderId: "1", market: "SOL", type: "LONG", qty: 10, margin: 500, filledQty: 10, orderType: "limit", price: 90, status: "filled" },
@@ -84,8 +85,8 @@ const users: User[] = [{
         locked: 2000
     },
     positions: [
-        { market: "SOL", type: "SHORT", qty: 10, margin: 1000, liquidationPrice: 80, pnL: 200, averagePrice: 90 },
-        { market: "ETH", type: "LONG", qty: 1, margin: 1000, liquidationPrice: 2000, pnL: -100, averagePrice: 1900 }
+        { market: "SOL", type: "SHORT", qty: 10, margin: 1000, liquidationPrice: 80, pnL: 200, averagePrice: 90, status: "open" },
+        { market: "ETH", type: "LONG", qty: 1, margin: 1000, liquidationPrice: 2000, pnL: -100, averagePrice: 1900, status: "open" }
     ],
     orders: [
         { orderId: "10", market: "SOL", type: "SHORT", qty: 10, margin: 500, filledQty: 10, orderType: "market", price: 90, status: "filled" },
@@ -340,18 +341,114 @@ app.delete("/order/:orderId", auth, (req: any, res) => {
         message: "order cancelled successfully"
     });
 });
-app.get("/equity/available", auth, (req, res) => { })
-app.get("/positions/open/:marketId", auth, (req, res) => { });
-app.get("/positions/closed/:marketId", auth, (req, res) => { });
-app.get("/orders/open/:marketId", auth, (req, res) => { })
-app.get("/orders/:marketId", auth, (req, res) => { })
-app.get("/fills", auth, (req, res) => { });
+app.get("/equity/available", auth, (req: any, res) => {
+    const userId = req.userId;
+    const user = users.find(u => u.userId === userId);
+
+    if (!user) {
+        return res.status(404).json({
+            message: "user not found."
+        })
+    }
+    res.status(200).json({
+        available: user.collateral.available,
+    })
+})
+app.get("/positions/open/:marketId", auth, (req: any, res) => {
+    const { marketId } = req.params;
+    if (!VALID_MARKETS.includes(marketId as any)) {
+        return res.status(400).json({ message: "invalid market" });
+    }
+    const userId = req.userId;
+    const user = users.find(u => u.userId === userId);
+
+    if (!user) {
+        return res.status(404).json({
+            message: "user not found."
+        })
+    }
+
+    const openPositions = user.positions.filter(p => p.market === marketId && p.status === "open")
+
+    res.status(200).json({
+        open_positions: openPositions,
+    })
+});
+app.get("/positions/closed/:marketId", auth, (req: any, res) => {
+    const { marketId } = req.params;
+    if (!VALID_MARKETS.includes(marketId as any)) {
+        return res.status(400).json({ message: "invalid market" });
+    }
+    const userId = req.userId;
+    const user = users.find(u => u.userId === userId);
+
+    if (!user) {
+        return res.status(404).json({ message: "user not found." })
+    }
+
+    const closedPositions = user.positions.filter(p => p.market === marketId && p.status === "closed")
+
+    res.status(200).json({
+        closed_positions: closedPositions,
+    })
+});
+app.get("/orders/open/:marketId", auth, (req: any, res) => {
+    const { marketId } = req.params;
+    if (!VALID_MARKETS.includes(marketId as any)) {
+        return res.status(400).json({ message: "invalid market" });
+    }
+    const userId = req.userId;
+    const user = users.find(u => u.userId === userId);
+
+    if (!user) {
+        return res.status(404).json({
+            message: "user not found."
+        })
+    }
+
+    const openOrders = user.orders.filter(o => o.market === marketId && (o.status === "open" || o.status === "partially_filled"));
+
+    res.status(200).json({
+        open_orders: openOrders,
+    })
+})
+app.get("/orders/:marketId", auth, (req: any, res) => {
+    const { marketId } = req.params;
+    if (!VALID_MARKETS.includes(marketId as any)) {
+        return res.status(400).json({ message: "invalid market" });
+    }
+    const userId = req.userId;
+    const user = users.find(u => u.userId === userId);
+
+    if (!user) {
+        return res.status(404).json({
+            message: "user not found."
+        })
+    }
+
+    const allOrders = user.orders.filter(o => o.market === marketId);
+
+    res.status(200).json({
+        orders: allOrders,
+    })
+})
+app.get("/fills", auth, (req: any , res) => {
+    const userId = req.userId;
+    const userFills = fills.filter(f => f.maker === userId || f.taker === userId);
+
+    res.status(200).json({
+        fills: userFills,
+    })
+});
 
 async function liqudationChecks(asset: string, price: number) {
-
 }
 
 
 async function onPriceUpdateFromBinance(asset: string, price: number) {
     liqudationChecks(asset, price);
 }
+
+app.listen(3000, () => {
+    console.log("server running on port 3000");
+});
