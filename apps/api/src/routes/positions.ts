@@ -21,7 +21,7 @@ router.get("/positions/open/:marketId", auth, (req: any, res) => {
     const openPositions = user.positions.filter(p => p.market === marketId && p.status === "open")
 
     res.status(200).json({
-        positionss: openPositions,
+        positions: openPositions,
     })
 });
 
