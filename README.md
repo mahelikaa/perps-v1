@@ -1,15 +1,40 @@
-# backpack-depth-indexer
+# perps-v1
 
-To install dependencies:
+Perpetual futures CEX backend. Bun monorepo, built from scratch.
 
-```bash
+## Stack
+Bun · Express · TypeScript · Zod · JWT · bcrypt
+
+## Structure
+```
+apps/api/     → REST API
+packages/     → shared types (WIP)
+```
+
+## Run
+```sh
 bun install
+cd apps/api && bun run index.ts
 ```
 
-To run:
+## Endpoints
+| Method | Route | Auth |
+|--------|-------|------|
+| POST | `/signup` | ❌ |
+| POST | `/signin` | ❌ |
+| POST | `/onramp` | ✅ |
+| POST | `/order` | ✅ |
+| DELETE | `/order/:orderId` | ✅ |
+| GET | `/equity/available` | ✅ |
+| GET | `/positions/open/:marketId` | ✅ |
+| GET | `/positions/closed/:marketId` | ✅ |
+| GET | `/orders/open/:marketId` | ✅ |
+| GET | `/orders/:marketId` | ✅ |
+| GET | `/fills` | ✅ |
 
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.3.11. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+## Roadmap
+- [x] Auth, collateral, orders, positions, fills
+- [ ] Order matching engine
+- [ ] Postgres + Redis Streams
+- [ ] Liquidation engine
+- [ ] WebSocket server
