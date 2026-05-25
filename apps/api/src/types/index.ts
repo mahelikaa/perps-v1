@@ -16,6 +16,16 @@ export type User = {
         averagePrice: number,
         status: "open" | "closed",
     }[];
+    closedPositions: {
+        market: "SOL" | "ETH" | "BTC" | "ZEC",
+        type: "LONG" | "SHORT",
+        qty: number,
+        margin: number,
+        liquidationPrice: number,
+        pnL?: number,
+        averagePrice: number,
+        status: "open" | "closed",
+    }[];
     orders: {
         orderId: string,
         market: "SOL" | "ETH" | "BTC" | "ZEC",

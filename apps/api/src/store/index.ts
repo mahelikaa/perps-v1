@@ -17,6 +17,7 @@ export const users: User[] = [{
         { market: "SOL", type: "LONG", qty: 10, margin: 500, liquidationPrice: 80, averagePrice: 90, status: "open" },
         { market: "ETH", type: "SHORT", qty: 1, margin: 500, liquidationPrice: 2000, averagePrice: 1900, status: "open" }
     ],
+    closedPositions: [],
     orders: [
         { orderId: "1", market: "SOL", type: "LONG", qty: 10, margin: 500, filledQty: 10, orderType: "limit", price: 90, status: "filled" },
         { orderId: "2", market: "ETH", type: "SHORT", qty: 10, margin: 500, filledQty: 10, orderType: "limit", price: 1900, status: "filled" },
@@ -34,6 +35,7 @@ export const users: User[] = [{
         { market: "SOL", type: "SHORT", qty: 10, margin: 1000, liquidationPrice: 80, pnL: 200, averagePrice: 90, status: "open" },
         { market: "ETH", type: "LONG", qty: 1, margin: 1000, liquidationPrice: 2000, pnL: -100, averagePrice: 1900, status: "open" }
     ],
+    closedPositions: [],
     orders: [
         { orderId: "10", market: "SOL", type: "SHORT", qty: 10, margin: 500, filledQty: 10, orderType: "market", price: 90, status: "filled" },
         { orderId: "11", market: "ETH", type: "LONG", qty: 10, margin: 500, filledQty: 10, orderType: "market", price: 1900, status: "filled" },
