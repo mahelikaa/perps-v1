@@ -7,7 +7,9 @@ export function calculateLiquidationPrice(
     margin: number,
 ): number {
     const maintenanceMargin = price * qty * MAINTENANCE_MARGIN_RATE;
-    return type === "LONG"
+    const rawLiqPrice = type === "LONG"
         ? price - (margin - maintenanceMargin) / qty
-        : price + (margin - maintenanceMargin) / qty
+        : price + (margin - maintenanceMargin) / qty;
+
+    return type === "LONG" ? Math.max(0, rawLiqPrice) : rawLiqPrice;
 }

@@ -6,9 +6,15 @@ import positionsRouter from "./src/routes/positions";
 import ordersRouter from "./src/routes/orders";
 import fillsRouter from "./src/routes/fills";
 import equityRouter from "./src/routes/equity";
+import { liquidationChecks } from "./src/engine/liquidation";
 
 const app = express();
 app.use(express.json());
+
+function onPriceUpdate(asset: string, price: number) {
+    liquidationChecks(asset, price);
+}
+
 
 app.use(authRouter);
 app.use(onrampRouter);

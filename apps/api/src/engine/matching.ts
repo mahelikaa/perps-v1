@@ -1,7 +1,9 @@
 import type { User } from "../types";
 import { calculateLiquidationPrice } from "./utils";
 import { users, fills, orderbooks } from "../store";
-function addToUserPosition(
+
+
+export function addToUserPosition(
     user: User,
     market: "SOL" | "ETH" | "BTC" | "ZEC",
     type: "LONG" | "SHORT",
