@@ -195,7 +195,7 @@ export function matchOrder(
                 addToUserPosition(user, order.market, "LONG", fillQty, fillMarginBuyer, askPrice);
                 addToUserPosition(seller, order.market, "SHORT", fillQty, fillMarginSeller, askPrice);
 
-                seller.collateral.locked -= fillMarginSeller;
+                // seller.collateral.locked -= fillMarginSeller;
             }
 
             priceLevel.openOrders = priceLevel.openOrders.filter(o => o.filledQty < o.qty);
@@ -257,7 +257,7 @@ export function matchOrder(
                 addToUserPosition(user, order.market, "SHORT", fillQty, fillMarginSeller, bidPrice);
                 addToUserPosition(buyer, order.market, "LONG", fillQty, fillMarginBuyer, bidPrice);
 
-                buyer.collateral.locked -= fillMarginBuyer;
+                // buyer.collateral.locked -= fillMarginBuyer;
             }
 
             priceLevel.openOrders = priceLevel.openOrders.filter(o => o.filledQty < o.qty);
