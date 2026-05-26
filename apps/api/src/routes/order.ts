@@ -2,7 +2,7 @@ import {Router} from "express";
 import {auth} from "../middleware/auth";
 import {users, orderbooks} from "../store";
 import {OrderSchema} from "../schemas";
-
+import {matchOrder} from "../engine/matching";
 
 const router = Router();
 
@@ -51,6 +51,14 @@ router.post("/order", auth, (req: any, res) => {
     }
 
     user.orders.push(newOrder);
+
+    const remainingQty = matchOrder(newOrder, userId);
+
+const placedOrder = user.orders.find(o => o.orderId === newOrder.orderId);
+if (placedOrder) {
+    if (remainingQty === 0) placedOrder.status = "filled";
+    else if (remainingQty < newOrder.qty) placedOrder.status = "partially_filled";
+}
 
     res.status(200).json({
         message: "order placed successfully",

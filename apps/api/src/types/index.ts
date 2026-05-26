@@ -24,7 +24,6 @@ export type User = {
         liquidationPrice: number,
         pnL?: number,
         averagePrice: number,
-        status: "open" | "closed",
     }[];
     orders: {
         orderId: string,
