@@ -37,7 +37,7 @@ router.get("/positions/closed/:marketId", auth, (req: any, res) => {
         return res.status(404).json({ message: "user not found." })
     }
 
-    const closedPositions = user.positions.filter(p => p.market === marketId && p.status === "closed")
+   const closedPositions = user.closedPositions.filter(p => p.market === marketId)
 
     res.status(200).json({
         positions: closedPositions,
